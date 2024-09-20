@@ -12,12 +12,22 @@
         rel="stylesheet">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script>
+        window.onload = function () {
+            if (document.cookie.indexOf('usuario=') === -1) {
+                window.location.href = "/pages/register.html";
+            }
+            document.getElementById("loginregister").style.display = "none"
+        };
+    </script>
 </head>
 
 <body>
     <nav>
-        <div class="navtype"><img id="logo" src="/images/orbitae.png" alt="logo Orbitae">ORBITAE</div>
-        <div class="navtype"><ion-icon name="person-circle-outline"></ion-icon><a href="/pages/login.html">Entrar/Registrar</a></div>
+        <div class="navtype"><img id="logo" src="/images/orbitae.png" alt="logo Orbitae"><span><a
+                    href="/pages/index.html">ORBITAE</a></span></div>
+        <div class="navtype" id="loginregister"><ion-icon name="person-circle-outline"></ion-icon><a
+                href="/pages/login.html">Entrar/Registrar</a></div>
     </nav>
 
     <main>

@@ -7,6 +7,8 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');  // Importa o cookie-parser
 const { user_cookie } = require('./user_cookie.js');
 
+
+
 const app = express();
 
 app.use(express.json());
@@ -60,12 +62,17 @@ app.post('/', async (req, res) => {
 
         req.session.login = req.body.email;
 
-        res.cookie('usuario', req.body.email, { maxAge: 5 * 3600 * 1000, httpOnly: true });
+        res.cookie('usuario', req.body.email, { maxAge: 5 * 3600 * 1000});
 
+        const usuario_id = await user.findOne({
+            where: { email: req.body.email,  password: req.body.senha }
+        });
+        
         await user_cookie.create({
-            id_user: novoUsuario.id,
+            userId: usuario_id.id,
             cookie: req.body.email
         });
+        
 
         // Chama a API externa usando fetch
         const response = await fetch('http://localhost:8080/auth/retorno-login?' + encodeURIComponent(req.body.email), {
@@ -101,11 +108,11 @@ app.post('/login', async (req, res) => {
             req.session.login = req.body.email;
 
             // Criando cookie
-            res.cookie('usuario', req.body.email, { maxAge: 5 * 3600 * 1000, httpOnly: true });
+            res.cookie('usuario', req.body.email, { maxAge: 5 * 3600 * 1000});
 
             // Armazenar cookie no banco
             await user_cookie.create({
-                id_user: usuarioExistente.id,
+                userId: usuarioExistente.id,
                 cookie: req.body.email
             });
 
@@ -121,6 +128,8 @@ app.post('/login', async (req, res) => {
             if (!response.ok) {
                 throw new Error('Erro ao comunicar com a API externa');
             }
+
+
 
             // Redireciona para a página de sucesso
             return res.redirect("http://localhost:5500/pages/index.html");

@@ -11,7 +11,7 @@ var user_cookie = banco.conexao.define(
             primaryKey: true,
             autoIncrement:true
         },
-        id_user:{
+        userId:{
             type:sequelize.INTEGER.UNSIGNED,
             allowNull:false
         },

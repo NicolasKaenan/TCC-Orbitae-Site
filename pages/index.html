@@ -12,16 +12,125 @@
         rel="stylesheet">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script>
+        window.onload = function () {
+            if (document.cookie.indexOf('usuario=') === -1) {
+                window.location.href = "/pages/register.html";
+            }
+            document.getElementById("loginregister").style.display = "none"
+        };
+
+        var user = getCookie("usuario");
+        // Função para fazer a requisição e criar os campos de simulação
+        function fetchSimulationsAndCreateItems() {
+            fetch("http://localhost:3000/simulation/" + user)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Erro na resposta do servidor");
+                    }
+                    return response.json(); // Supondo que a resposta seja JSON
+                })
+                .then(simulacoes => {
+                    const universosCampo = document.getElementById("universoscampo");
+                    universosCampo.innerHTML = "";
+        
+                    simulacoes.forEach(simulacao => {
+                        const itemDiv = document.createElement("div");
+                        itemDiv.classList.add("simulacao-item");
+                        itemDiv.style.width = "150px";
+                        itemDiv.style.height = "150px";
+                        itemDiv.style.border = "1px solid #ccc";
+                        itemDiv.style.margin = "10px";
+                        itemDiv.style.padding = "10px";
+                        itemDiv.style.display = "flex";
+                        itemDiv.style.flexDirection = "column";
+                        itemDiv.style.textAlign = "center";
+        
+                        const name = document.createElement("h2");
+                        name.textContent = simulacao.nome || "Nome não encontrado";
+                        name.style.marginBottom = "10px";
+        
+                        // Criar o botão "Remover"
+                        const removeButton = document.createElement("button");
+                        removeButton.textContent = "Remover";
+                        removeButton.style.display = "block";
+                        removeButton.style.marginTop = "10px";
+                        
+                        // Adicionar evento de clique para deletar
+                        removeButton.addEventListener("click", () => {
+                            console.log(`Clicou em remover para a simulação com ID: ${simulacao.id}`); // Debug
+
+                            // Fazer a requisição DELETE
+                            fetch(`http://localhost:3000/simulation/${simulacao.id}`, {
+                                method: "DELETE",
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error("Erro ao deletar a simulação");
+                                }
+                                // Remover o item do DOM se a requisição for bem-sucedida
+                                itemDiv.remove();
+                            })
+                            .catch(error => {
+                                console.error("Erro na exclusão:", error);
+                            });
+                        });
+        
+                        // Criar o botão "Relatório"
+                        const reportButton = document.createElement("button");
+                        reportButton.textContent = "Relatório";
+                        reportButton.style.display = "block";
+                        reportButton.style.marginTop = "10px";
+                        reportButton.addEventListener("click", () => {
+                            alert(`Relatório para: ${simulacao.name}`);
+                        });
+        
+                        // Adicionar o nome e os botões ao item
+                        itemDiv.appendChild(name);
+                        itemDiv.appendChild(removeButton);
+                        itemDiv.appendChild(reportButton);
+        
+                        // Adicionar o item à div principal
+                        universosCampo.appendChild(itemDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error("Erro na requisição:", error);
+                });
+        }
+        
+        // Chamar a função para buscar as simulações e criar os itens
+        fetchSimulationsAndCreateItems();
+
+
+
+        function getCookie(nomeDoCookie) {
+            const cookies = document.cookie.split("; ");
+            for (let cookie of cookies) {
+                const [nome, valor] = cookie.split("=");
+                if (nome === nomeDoCookie) {
+                    return valor;
+                }
+            }
+            return null;
+        }
+
+    </script>
 </head>
 
 <body>
     <nav>
-        <div class="navtype"><img id="logo" src="/images/orbitae.png" alt="logo Orbitae">ORBITAE</div>
-        <div class="navtype"><ion-icon name="person-circle-outline"></ion-icon><a href="/pages/login.html">Entrar/Registrar</a></div>
+        <div class="navtype"><img id="logo" src="/images/orbitae.png" alt="logo Orbitae"><span><a
+                    href="/pages/index.html">ORBITAE</a></span></div>
+        <div class="navtype" id="loginregister"><ion-icon name="person-circle-outline"></ion-icon><a
+                href="/pages/login.html">Entrar/Registrar</a></div>
     </nav>
 
     <main>
         <h1>SEUS UNIVERSOS:</h1>
+        <div id="universoscampo">
+
+        </div>
     </main>
 
     <footer>

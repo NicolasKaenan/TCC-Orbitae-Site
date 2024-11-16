@@ -1,9 +1,9 @@
 const sequelize = require("sequelize");
 const banco = require("./banco")
-const user = require("./corpo");
+const simulacao = require("./simulacao");
 const { corpos } = require("./corpos");
 
-var user = banco.conexao.define(    
+var relatorio = banco.conexao.define(    
     "relatorio",
     {
         id:{
@@ -23,13 +23,10 @@ var user = banco.conexao.define(
             type:sequelize.INTEGER,
             allowNull:false
         },
-        nome_simulacao:{
+        id_simulacao:{
             type:sequelize.STRING,
             allowNull:false
         }
     },
     { timestamps: false }
 )
-corpos.corpos.belongsTo(relatorio)
-relatorio.has
-module.exports = {relatorio}

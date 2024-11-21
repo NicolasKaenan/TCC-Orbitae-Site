@@ -168,24 +168,68 @@ app.post('/simulation', async (req, res) => {
             where: { cookie: cookie_user }
         });
 
-        if (!resultado) {
+        if (!resultado || resultado.length === 0) {
             return res.status(404).json({ message: 'Usuário não encontrado' });
         }
 
         // Criar a simulação
-        await simulacao.create({
+        const novaSimulacao = await simulacao.create({
             id_user: resultado[0].id_user,
             nome: nome,
             cor: cor
         });
 
-        // Retornar uma resposta
-        res.status(200).json({ message: 'Dados recebidos e simulação criada com sucesso' });
+        // Retornar o ID da simulação criada
+        res.status(200).json({ 
+            message: 'Simulação criada com sucesso',
+            id: novaSimulacao.id // Captura o ID retornado pelo Sequelize
+        });
     } catch (error) {
         console.error('Erro ao processar os dados:', error);
         res.status(500).json({ message: 'Erro ao processar os dados' });
     }
 });
+
+app.put("/corpos/:id", (req, res) => {
+    const simulacaoId = parseInt(req.params.id); // ID da simulação fornecido na URL
+    const listaCorpos = req.body; // Lista de corpos enviada no JSON
+
+    if (!Array.isArray(listaCorpos)) {
+        return res.status(400).json({ message: "O corpo da requisição deve ser uma lista de corpos." });
+    }
+
+    let atualizados = 0;
+    let criados = 0;
+
+    listaCorpos.forEach(novoCorpo => {
+        // Verifica se o corpo já existe
+        const corpoExistenteIndex = corpos.findIndex(corpo =>
+            corpo.id === novoCorpo.id && corpo.id_simulacao === simulacaoId
+        );
+
+        if (corpoExistenteIndex !== -1) {
+            // Atualiza o corpo existente
+            corpos[corpoExistenteIndex] = {
+                ...corpos[corpoExistenteIndex],
+                ...novoCorpo,
+                id_simulacao: simulacaoId
+            };
+            atualizados++;
+        } else {
+            // Cria um novo corpo
+            novoCorpo.id_simulacao = simulacaoId;
+            corpos.push(novoCorpo);
+            criados++;
+        }
+    });
+
+    return res.status(200).json({
+        message: "Processamento concluído.",
+        atualizados,
+        criados
+    });
+});
+
 
 app.get("/simulation/:cookie", async (req, res) => {
     try {

@@ -7,7 +7,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');  // Importa o cookie-parser
 const { user_cookie } = require('./user_cookie.js');
 const { simulacao } = require('./simulacao.js')
-const corpos = require("./corpos") 
+const corpos = require("./corpos")
 var id_userlocal;
 const { relatorio } = require('./relatorio.js')
 const cors = require('cors')
@@ -15,6 +15,8 @@ const cors = require('cors')
 
 const app = express();
 app.use(cors());
+app.use(express.json());
+
 
 app.use(cors({
     origin: 'http://127.0.0.1:5500', // Indica quem pode se conectar 
@@ -136,7 +138,7 @@ app.post('/login', async (req, res) => {
                     'Cookie': `usuario=${req.body.email}`
                 }
             });
-            id_userlocal = usuarioExistente.id 
+            id_userlocal = usuarioExistente.id
             if (!response.ok) {
                 throw new Error('Erro ao comunicar com a API externa');
             }
@@ -168,30 +170,119 @@ app.post('/simulation', async (req, res) => {
             where: { cookie: cookie_user }
         });
 
-        if (!resultado) {
+        if (!resultado || resultado.length === 0) {
             return res.status(404).json({ message: 'Usuário não encontrado' });
         }
 
         // Criar a simulação
-        await simulacao.create({
+        const novaSimulacao = await simulacao.create({
             id_user: resultado[0].id_user,
             nome: nome,
             cor: cor
         });
 
-        // Retornar uma resposta
-        res.status(200).json({ message: 'Dados recebidos e simulação criada com sucesso' });
+        // Retornar o ID da simulação criada
+        res.status(200).json({
+            message: 'Simulação criada com sucesso',
+            id: novaSimulacao.id // Captura o ID retornado pelo Sequelize
+        });
     } catch (error) {
         console.error('Erro ao processar os dados:', error);
         res.status(500).json({ message: 'Erro ao processar os dados' });
     }
 });
 
+app.get("/corpos/simulation/:id", async (req, res) => {
+    const simulacaoId = parseInt(req.params.id);
+
+    try {
+        const corposLista = await corpos.findAll({
+            where: { id_simulacao: simulacaoId }
+        });
+
+        if (corposLista.length > 0) {
+            res.status(200).json(corposLista);
+        } else {
+            res.status(404).json({ message: "Nenhum corpo encontrado para essa simulação." });
+        }
+    } catch (error) {
+        console.error("Erro ao buscar os corpos:", error);
+        res.status(500).json({ message: "Erro no servidor." });
+    }
+});
+
+app.put("/corpos/:id", async (req, res) => {
+    const simulacaoId = parseInt(req.params.id); // ID da simulação fornecido na URL
+    const listaCorpos = req.body; // Lista de corpos enviada no JSON
+
+    if (!Array.isArray(listaCorpos)) {
+        return res.status(400).json({ message: "O corpo da requisição deve ser uma lista de corpos." });
+    }
+
+    let atualizados = 0;
+    let criados = 0;
+
+    try {
+        for (const novoCorpo of listaCorpos) {
+            if (novoCorpo.id === -1) {
+                // Criar um novo corpo, deixando o MySQL gerar o ID
+                const corpo = await corpos.create({
+                    id_simulacao: simulacaoId,
+                    massa: novoCorpo.massa,
+                    cor: novoCorpo.cor,
+                    position_x: novoCorpo.position_x,
+                    position_y: novoCorpo.position_y,
+                    position_z: novoCorpo.position_z,
+                    velocidade_x: novoCorpo.velocidade_x,
+                    velocidade_y: novoCorpo.velocidade_y,
+                    velocidade_z: novoCorpo.velocidade_z
+                });
+                criados++;
+            } else {
+                // Atualizar o corpo existente, se encontrado
+                const corpo = await corpos.findOne({
+                    where: { id: novoCorpo.id, id_simulacao: simulacaoId } // Condição de busca do corpo
+                });
+
+                if (corpo) {
+                    // Atualiza apenas se o corpo existir
+                    await corpos.update({
+                        massa: novoCorpo.massa,
+                        cor: novoCorpo.cor,
+                        position_x: novoCorpo.position_x,
+                        position_y: novoCorpo.position_y,
+                        position_z: novoCorpo.position_z,
+                        velocidade_x: novoCorpo.velocidade_x,
+                        velocidade_y: novoCorpo.velocidade_y,
+                        velocidade_z: novoCorpo.velocidade_z
+                    }, {
+                        where: { id: novoCorpo.id, id_simulacao: simulacaoId } // Onde a atualização deve ocorrer
+                    });
+                    atualizados++;
+                } else {
+                    // Caso não encontre o corpo para atualizar
+                    return res.status(404).json({ message: `Corpo com ID ${novoCorpo.id} não encontrado.` });
+                }
+            }
+        }
+
+        return res.status(200).json({
+            message: "Processamento concluído.",
+            atualizados,
+            criados,
+        });
+    } catch (error) {
+        console.error("Erro ao processar corpos:", error);
+        return res.status(500).json({ message: "Erro interno no servidor." });
+    }
+});
+
+
 app.get("/simulation/:cookie", async (req, res) => {
     try {
         // Pegue o valor do cookie da URL
         const cookie = req.params.cookie;
-        
+
         // Consulte o banco de dados com o cookie
         const resultado = await user_cookie.findAll({
             where: { cookie: cookie } // Use o valor do cookie
@@ -217,7 +308,7 @@ app.get("/simulation/:cookie", async (req, res) => {
     }
 });
 
-app.delete("/simulation/:id", async (req,res)=>{
+app.delete("/simulation/:id", async (req, res) => {
     const resultado = await simulacao.destroy({
         where: {
             id: req.params.id

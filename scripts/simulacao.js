@@ -27,6 +27,6 @@ var simulacao = banco.conexao.define(
     { timestamps: false }
 )
 
-simulacao.hasMany(corpos.corpos,{foreignKey: 'id_simulacao'})
+simulacao.hasMany(corpos,{foreignKey: 'id_simulacao'})
 
 module.exports = {simulacao}

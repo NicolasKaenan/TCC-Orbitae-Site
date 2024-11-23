@@ -1,51 +1,52 @@
 const sequelize = require("sequelize");
-const banco = require("./banco")
+const banco = require("./banco");
 
-var corpos = banco.conexao.define(
+const corpos = banco.conexao.define(
     "corpos",
     {
-        id:{
-            type:sequelize.INTEGER.UNSIGNED,
+        id: {
+            type: sequelize.INTEGER.UNSIGNED,
             primaryKey: true,
-            autoIncrement:true
+            autoIncrement: true,
         },
-        id_simulacao:{
-            type:sequelize.INTEGER.UNSIGNED,
-            allowNull:false
+        id_simulacao: {
+            type: sequelize.INTEGER.UNSIGNED,
+            allowNull: false,
         },
-        massa:{
-            type:sequelize.DOUBLE.UNSIGNED,
-            allowNull:false
+        massa: {
+            type: sequelize.DOUBLE.UNSIGNED,
+            allowNull: false,
         },
-        cor:{
-            type:sequelize.STRING,
-            allowNull:false
+        cor: {
+            type: sequelize.STRING,
+            allowNull: false,
         },
-        position_x:{
-            type:sequelize.DOUBLE.UNSIGNED,
-            allowNull:false
+        position_x: {
+            type: sequelize.DOUBLE,
+            allowNull: false,
         },
-        position_y:{
-            type:sequelize.DOUBLE.UNSIGNED,
-            allowNull:false
+        position_y: {
+            type: sequelize.DOUBLE,
+            allowNull: false,
         },
-        position_z:{
-            type:sequelize.DOUBLE.UNSIGNED,
-            allowNull:false
+        position_z: {
+            type: sequelize.DOUBLE,
+            allowNull: false,
         },
-        velocidade_x:{
-            type:sequelize.DOUBLE.UNSIGNED,
-            allowNull:false
+        velocidade_x: {
+            type: sequelize.DOUBLE,
+            allowNull: false,
         },
-        velocidade_y:{
-            type:sequelize.DOUBLE.UNSIGNED,
-            allowNull:false
+        velocidade_y: {
+            type: sequelize.DOUBLE,
+            allowNull: false,
         },
-        velocidade_z:{
-            type:sequelize.DOUBLE.UNSIGNED,
-            allowNull:false
+        velocidade_z: {
+            type: sequelize.DOUBLE,
+            allowNull: false,
         },
-    }, { timestamps: false }
-)
+    },
+    { timestamps: false }
+);
 
-module.exports = { corpos };
+module.exports = corpos;

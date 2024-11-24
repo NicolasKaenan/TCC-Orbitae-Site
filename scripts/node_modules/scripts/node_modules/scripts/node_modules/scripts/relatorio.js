@@ -1,32 +1,68 @@
 const sequelize = require("sequelize");
-const banco = require("./banco")
-const simulacao = require("./simulacao");
-const { corpos } = require("./corpos");
+const banco = require("./banco");
+const Corpo = require("./corpos");
 
-var relatorio = banco.conexao.define(    
+var relatorio = banco.conexao.define(
     "relatorio",
     {
-        id:{
-            type:sequelize.INTEGER.UNSIGNED,
+        id: {
+            type: sequelize.INTEGER.UNSIGNED,
             primaryKey: true,
-            autoIncrement:true
+            autoIncrement: true,
         },
-        id_corpo:{
-            type:sequelize.INTEGER.UNSIGNED,
-            allowNull:false
+        id_corpo: {
+            type: sequelize.INTEGER.UNSIGNED,
+            references: {
+                model: Corpo,
+                key: 'id',
+                onDelete: 'CASCADE',
+                onUpdate: 'CASCADE',
+            },
+            allowNull: false,
         },
-        colisao:{
-            type:sequelize.INTEGER,
-            allowNull:false
+        nomeCorpo: {
+            type: sequelize.STRING,
+            allowNull: false,
         },
-        quantideda_corpos:{
-            type:sequelize.INTEGER,
-            allowNull:false
+        massa: {
+            type: sequelize.DOUBLE,
+            allowNull: false,
         },
-        id_simulacao:{
-            type:sequelize.STRING,
-            allowNull:false
-        }
+        densidade: {
+            type: sequelize.DOUBLE,
+            allowNull: false,
+        },
+        volume: {
+            type: sequelize.DOUBLE,
+            allowNull: false,
+        },
+        raio: {
+            type: sequelize.DOUBLE,
+            allowNull: false,
+        },
+        quantidadeColisoes: {
+            type: sequelize.INTEGER,
+            defaultValue: 0,
+            allowNull: false,
+        },
+        velocidadeMediaX: {
+            type: sequelize.DOUBLE,
+            allowNull: true,
+        },
+        velocidadeMediaY: {
+            type: sequelize.DOUBLE,
+            allowNull: true,
+        },
+        velocidadeMediaZ: {
+            type: sequelize.DOUBLE,
+            allowNull: true,
+        },
+        cor: {
+            type: sequelize.STRING,
+            allowNull: true,
+        },
     },
     { timestamps: false }
-)
+);
+
+module.exports = relatorio;

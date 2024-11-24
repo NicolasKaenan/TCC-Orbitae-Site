@@ -211,6 +211,18 @@ app.get("/corpos/simulation/:id", async (req, res) => {
     }
 });
 
+app.put("/relatorio/:id", async (req,res)=>{
+    const relatorio = relatorio.findOne({
+        where: {id_simulacao: req.params.id}
+    });
+    if(relatorio){
+        const relatoriNovo = relatorio.update({
+            id: relatorio.id,
+            
+        })
+    }
+});
+
 app.put("/corpos/:id", async (req, res) => {
     const simulacaoId = parseInt(req.params.id); // ID da simulação fornecido na URL
     const listaCorpos = req.body; // Lista de corpos enviada no JSON
@@ -228,6 +240,7 @@ app.put("/corpos/:id", async (req, res) => {
                 // Criar um novo corpo, deixando o MySQL gerar o ID
                 const corpo = await corpos.create({
                     id_simulacao: simulacaoId,
+                    nome: novoCorpo.nome,
                     massa: novoCorpo.massa,
                     cor: novoCorpo.cor,
                     position_x: novoCorpo.position_x,
@@ -280,29 +293,23 @@ app.put("/corpos/:id", async (req, res) => {
 
 app.get("/simulation/:cookie", async (req, res) => {
     try {
-        // Pegue o valor do cookie da URL
         const cookie = req.params.cookie;
 
-        // Consulte o banco de dados com o cookie
         const resultado = await user_cookie.findAll({
-            where: { cookie: cookie } // Use o valor do cookie
+            where: { cookie: cookie } 
         });
 
-        // Verifique se encontrou algum resultado
         if (!resultado || resultado.length === 0) {
             return res.status(404).json({ error: "Usuário não encontrado." });
         }
 
-        // Use o id_user do resultado para buscar as simulações
         const resultado2 = await simulacao.findAll({
             where: { id_user: resultado[0].id_user }
         });
 
-        // Retorne as simulações
         return res.status(200).json(resultado2);
 
     } catch (error) {
-        // Lidar com erros e enviar uma resposta de erro
         console.error(error);
         return res.status(500).json({ error: "Erro no servidor." });
     }

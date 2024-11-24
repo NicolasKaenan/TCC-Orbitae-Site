@@ -9,6 +9,10 @@ const corpos = banco.conexao.define(
             primaryKey: true,
             autoIncrement: true,
         },
+        nome:{
+            type: sequelize.STRING,
+            allowNull: false,
+        },
         id_simulacao: {
             type: sequelize.INTEGER.UNSIGNED,
             allowNull: false,

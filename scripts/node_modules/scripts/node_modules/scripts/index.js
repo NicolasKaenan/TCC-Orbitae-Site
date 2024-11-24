@@ -262,6 +262,7 @@ app.put("/corpos/:id", async (req, res) => {
                     nome: novoCorpo.nome,
                     massa: novoCorpo.massa,
                     cor: novoCorpo.cor,
+                    raio: novoCorpo.raio,
                     position_x: novoCorpo.position_x,
                     position_y: novoCorpo.position_y,
                     position_z: novoCorpo.position_z,

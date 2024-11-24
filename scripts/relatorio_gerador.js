@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Preencher os dados do corpo e relatório
             corpoDiv.innerHTML = `
-                <div>
+                <div style='background-color: black; color: white; padding: 10px; width: 1150px'>
                     <h2>Nome do corpo: ${corpo.nome}</h2>
                     <h2>Massa: ${corpo.massa}</h2>
                     <h2>Densidade: ${corpo.massa/((4 / 3) * 3.14 * (corpo.raio * corpo.raio * corpo.raio))}</h2>
@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
         const imgData = canvas.toDataURL("image/png");
         const pdf = new jspdf.jsPDF({
-            orientation: "portrait",
+            orientation: "landscape",
             unit: "px",
             format: "a4"
         });

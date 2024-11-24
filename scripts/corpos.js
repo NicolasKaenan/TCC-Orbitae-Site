@@ -25,6 +25,10 @@ const corpos = banco.conexao.define(
             type: sequelize.STRING,
             allowNull: false,
         },
+        raio:{
+            type: sequelize.DOUBLE,
+            allowNull: false,
+        },
         position_x: {
             type: sequelize.DOUBLE,
             allowNull: false,

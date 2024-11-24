@@ -21,14 +21,13 @@
         };
 
         var user = getCookie("usuario");
-        // Função para fazer a requisição e criar os campos de simulação
         function fetchSimulationsAndCreateItems() {
             fetch("http://localhost:3000/simulation/" + user)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error("Erro na resposta do servidor");
                     }
-                    return response.json(); // Supondo que a resposta seja JSON
+                    return response.json();
                 })
                 .then(simulacoes => {
                     const universosCampo = document.getElementById("universoscampo");
@@ -50,17 +49,14 @@
                         name.textContent = simulacao.nome || "Nome não encontrado";
                         name.style.marginBottom = "10px";
         
-                        // Criar o botão "Remover"
                         const removeButton = document.createElement("button");
                         removeButton.textContent = "Remover";
                         removeButton.style.display = "block";
                         removeButton.style.marginTop = "10px";
                         
-                        // Adicionar evento de clique para deletar
                         removeButton.addEventListener("click", () => {
-                            console.log(`Clicou em remover para a simulação com ID: ${simulacao.id}`); // Debug
-
-                            // Fazer a requisição DELETE
+                            
+                            console.log(`Clicou em remover para a simulação com ID: ${simulacao.id}`);
                             fetch(`http://localhost:3000/simulation/${simulacao.id}`, {
                                 method: "DELETE",
                             })
@@ -68,7 +64,7 @@
                                 if (!response.ok) {
                                     throw new Error("Erro ao deletar a simulação");
                                 }
-                                // Remover o item do DOM se a requisição for bem-sucedida
+                                
                                 itemDiv.remove();
                             })
                             .catch(error => {
@@ -76,21 +72,40 @@
                             });
                         });
         
-                        // Criar o botão "Relatório"
-                        const reportButton = document.createElement("button");
-                        reportButton.textContent = "Relatório";
-                        reportButton.style.display = "block";
-                        reportButton.style.marginTop = "10px";
-                        reportButton.addEventListener("click", () => {
-                            alert(`Relatório para: ${simulacao.name}`);
+                        const relatorioButton = document.createElement("button");
+                        relatorioButton.textContent = "Relatório";
+                        relatorioButton.style.display = "block";
+                        relatorioButton.style.marginTop = "10px";
+                        relatorioButton.addEventListener("click", () => {
+                            fetch("http://localhost:3000/corpos/simulation/" + simulacao.id)
+                                .then(response => response.json())
+                                .then(corpos => {
+                                    let relatorios = []; 
+                        
+                                    Promise.all(
+                                        corpos.map(corpo => 
+                                            fetch("http://localhost:3000/relatorio/" + corpo.id)
+                                                .then(response => response.json())
+                                                .then(relatorio => {
+                                                    relatorios.push({
+                                                        corpo: corpo,
+                                                        relatorio: relatorio,
+                                                        simulacao: simulacao,
+                                                    });
+                                                })
+                                        )
+                                    ).then(() => {
+                                        localStorage.setItem("relatorios", JSON.stringify(relatorios));
+                                        window.location.href = "/pages/relatorio.html";
+                                    });
+                                })
+                                .catch(error => console.error("Erro ao carregar os relatórios:", error));
                         });
-        
-                        // Adicionar o nome e os botões ao item
+                        
                         itemDiv.appendChild(name);
                         itemDiv.appendChild(removeButton);
-                        itemDiv.appendChild(reportButton);
+                        itemDiv.appendChild(relatorioButton);
         
-                        // Adicionar o item à div principal
                         universosCampo.appendChild(itemDiv);
                     });
                 })
@@ -99,10 +114,7 @@
                 });
         }
         
-        // Chamar a função para buscar as simulações e criar os itens
         fetchSimulationsAndCreateItems();
-
-
 
         function getCookie(nomeDoCookie) {
             const cookies = document.cookie.split("; ");

@@ -7,9 +7,9 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');  // Importa o cookie-parser
 const { user_cookie } = require('./user_cookie.js');
 const { simulacao } = require('./simulacao.js')
-const corpos = require("./corpos")
+const { corpos, relatorio } = require('./relatorio_corpo.js');
+
 var id_userlocal;
-const { relatorio } = require('./relatorio.js')
 const cors = require('cors')
 
 
@@ -192,12 +192,31 @@ app.post('/simulation', async (req, res) => {
     }
 });
 
+app.get("/relatorio/:id", async (req, res) => {
+    try {
+        const corpo_id = parseInt(req.params.id);
+
+        const relatorio_corpo = await relatorio.findOne({
+            where: { id_corpo: corpo_id }
+        })
+
+        res.status(200).json(relatorio_corpo)
+    }catch(error){
+
+    }
+})
+
 app.get("/corpos/simulation/:id", async (req, res) => {
     const simulacaoId = parseInt(req.params.id);
 
     try {
         const corposLista = await corpos.findAll({
-            where: { id_simulacao: simulacaoId }
+            where: { id_simulacao: simulacaoId }, include: [
+                {
+                    model: relatorio,
+                    as: 'relatorio',
+                },
+            ],
         });
 
         if (corposLista.length > 0) {
@@ -211,21 +230,21 @@ app.get("/corpos/simulation/:id", async (req, res) => {
     }
 });
 
-app.put("/relatorio/:id", async (req,res)=>{
+app.put("/relatorio/:id", async (req, res) => {
     const relatorio = relatorio.findOne({
-        where: {id_simulacao: req.params.id}
+        where: { id_simulacao: req.params.id }
     });
-    if(relatorio){
+    if (relatorio) {
         const relatoriNovo = relatorio.update({
             id: relatorio.id,
-            
+
         })
     }
 });
 
 app.put("/corpos/:id", async (req, res) => {
-    const simulacaoId = parseInt(req.params.id); // ID da simulação fornecido na URL
-    const listaCorpos = req.body; // Lista de corpos enviada no JSON
+    const simulacaoId = parseInt(req.params.id);
+    const listaCorpos = req.body;
 
     if (!Array.isArray(listaCorpos)) {
         return res.status(400).json({ message: "O corpo da requisição deve ser uma lista de corpos." });
@@ -237,7 +256,7 @@ app.put("/corpos/:id", async (req, res) => {
     try {
         for (const novoCorpo of listaCorpos) {
             if (novoCorpo.id === -1) {
-                // Criar um novo corpo, deixando o MySQL gerar o ID
+
                 const corpo = await corpos.create({
                     id_simulacao: simulacaoId,
                     nome: novoCorpo.nome,
@@ -250,15 +269,29 @@ app.put("/corpos/:id", async (req, res) => {
                     velocidade_y: novoCorpo.velocidade_y,
                     velocidade_z: novoCorpo.velocidade_z
                 });
+
+                await relatorio.create({
+                    id_corpo: corpo.id,
+                    nomeCorpo: novoCorpo.nome,
+                    massa: novoCorpo.massa,
+                    densidade: novoCorpo.relatorio.densidade,
+                    volume: novoCorpo.relatorio.volume,
+                    raio: novoCorpo.raio,
+                    quantidadeColisoes: novoCorpo.relatorio.quantidadeColisoes || 0,
+                    velocidadeMediaX: novoCorpo.relatorio.velocidadeMediaX,
+                    velocidadeMediaY: novoCorpo.relatorio.velocidadeMediaY,
+                    velocidadeMediaZ: novoCorpo.relatorio.velocidadeMediaZ,
+                    cor: novoCorpo.cor,
+                });
+
                 criados++;
             } else {
-                // Atualizar o corpo existente, se encontrado
+
                 const corpo = await corpos.findOne({
-                    where: { id: novoCorpo.id, id_simulacao: simulacaoId } // Condição de busca do corpo
+                    where: { id: novoCorpo.id, id_simulacao: simulacaoId }
                 });
 
                 if (corpo) {
-                    // Atualiza apenas se o corpo existir
                     await corpos.update({
                         massa: novoCorpo.massa,
                         cor: novoCorpo.cor,
@@ -269,11 +302,26 @@ app.put("/corpos/:id", async (req, res) => {
                         velocidade_y: novoCorpo.velocidade_y,
                         velocidade_z: novoCorpo.velocidade_z
                     }, {
-                        where: { id: novoCorpo.id, id_simulacao: simulacaoId } // Onde a atualização deve ocorrer
+                        where: { id: novoCorpo.id, id_simulacao: simulacaoId }
                     });
+
+                    await relatorio.update({
+                        nomeCorpo: novoCorpo.nome,
+                        massa: novoCorpo.massa,
+                        densidade: novoCorpo.relatorio.densidade,
+                        volume: novoCorpo.relatorio.volume,
+                        raio: novoCorpo.raio,
+                        quantidadeColisoes: novoCorpo.relatorio.quantidadeColisoes || 0,
+                        velocidadeMediaX: novoCorpo.relatorio.velocidadeMediaX,
+                        velocidadeMediaY: novoCorpo.relatorio.velocidadeMediaY,
+                        velocidadeMediaZ: novoCorpo.relatorio.velocidadeMediaZ,
+                        cor: novoCorpo.cor,
+                    }, {
+                        where: { id_corpo: novoCorpo.id }
+                    });
+
                     atualizados++;
                 } else {
-                    // Caso não encontre o corpo para atualizar
                     return res.status(404).json({ message: `Corpo com ID ${novoCorpo.id} não encontrado.` });
                 }
             }
@@ -285,10 +333,11 @@ app.put("/corpos/:id", async (req, res) => {
             criados,
         });
     } catch (error) {
-        console.error("Erro ao processar corpos:", error);
+        console.error("Erro ao processar corpos e relatórios:", error);
         return res.status(500).json({ message: "Erro interno no servidor." });
     }
 });
+
 
 
 app.get("/simulation/:cookie", async (req, res) => {
@@ -296,7 +345,7 @@ app.get("/simulation/:cookie", async (req, res) => {
         const cookie = req.params.cookie;
 
         const resultado = await user_cookie.findAll({
-            where: { cookie: cookie } 
+            where: { cookie: cookie }
         });
 
         if (!resultado || resultado.length === 0) {

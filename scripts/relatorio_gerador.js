@@ -1,13 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Selecionar os campos principais onde os dados serão preenchidos
     const campoSimulacao = document.querySelector(".campo:nth-child(1)");
     const gradeContainer = document.querySelector(".grade");
 
-    // Obter os dados da simulação e dos relatórios do localStorage
     const relatorios = JSON.parse(localStorage.getItem("relatorios"));
 
     if (relatorios && relatorios.length > 0) {
-        // Preenchendo os dados gerais da simulação
         campoSimulacao.innerHTML = `
             <img src='/images/orbitae_negativo.png' width='240px'>
             <h1>Simulação</h1>
@@ -15,12 +12,10 @@ document.addEventListener("DOMContentLoaded", () => {
             <h2>Cor: ${relatorios[0].simulacao.cor || "Não especificado"}</h2>
         `;
 
-        // Gerar os elementos da grade para cada corpo
         relatorios.forEach(({ corpo, relatorio }) => {
             const corpoDiv = document.createElement("div");
             corpoDiv.classList.add("grade-item");
 
-            // Preencher os dados do corpo e relatório
             corpoDiv.innerHTML = `
                 <div style='background-color: black; color: white; padding: 10px; width: 1150px'>
                     <h2>Nome do corpo: ${corpo.nome}</h2>
@@ -36,11 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             `;
 
-            // Adicionar o corpo à grade
             gradeContainer.appendChild(corpoDiv);
         });
     } else {
-        // Caso não existam relatórios
         gradeContainer.innerHTML = "<p>Nenhum relatório encontrado.</p>";
     }
 });
